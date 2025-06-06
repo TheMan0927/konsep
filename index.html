@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Prompt Alur Cerita Veo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">Generator Prompt Alur Cerita Veo</h1>
+            <p class="text-gray-400 mt-2">Buat prompt untuk Google Veo dengan karakter yang konsisten di setiap video.</p>
+        </header>
+
+        <!-- Step 1: Character Definition -->
+        <div id="character-section" class="bg-gray-800 p-6 rounded-xl shadow-lg mb-8 fade-in">
+            <h2 class="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">Langkah 1: Definisikan Karakter Utama Anda</h2>
+            <form id="character-form" class="space-y-4">
+                <div>
+                    <label for="char-name" class="block text-sm font-medium text-gray-300 mb-1">Nama Panggilan Karakter (untuk referensi Anda)</label>
+                    <input type="text" id="char-name" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: 'Arka si Penjelajah'">
+                </div>
+                <div>
+                    <label for="char-appearance" class="block text-sm font-medium text-gray-300 mb-1">Penampilan Fisik</label>
+                    <textarea id="char-appearance" rows="3" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: Pria, sekitar 30 tahun, rambut hitam sedikit berantakan, mata coklat tajam, postur tegap, rahang tegas."></textarea>
+                </div>
+                <div>
+                    <label for="char-outfit" class="block text-sm font-medium text-gray-300 mb-1">Pakaian Khas</label>
+                    <textarea id="char-outfit" rows="2" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: Selalu memakai jaket kulit coklat tua yang usang di atas kemeja flanel kotak-kotak merah, dan celana kargo."></textarea>
+                </div>
+                <div>
+                    <label for="char-accessory" class="block text-sm font-medium text-gray-300 mb-1">Aksesori Penting / Ciri Khas Unik</label>
+                    <textarea id="char-accessory" rows="2" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: Memakai jam tangan kompas antik di pergelangan tangan kiri. Memiliki bekas luka kecil di alis kanan."></textarea>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">Simpan Karakter & Lanjutkan ke Adegan</button>
+            </form>
+        </div>
+
+        <!-- Step 2: Scene Generation (Initially hidden) -->
+        <div id="scene-section" class="bg-gray-800 p-6 rounded-xl shadow-lg mb-8 hidden">
+            <h2 class="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2">Langkah 2: Buat Adegan Cerita</h2>
+            <div class="bg-gray-700 p-4 rounded-lg mb-4">
+                <p class="text-sm text-gray-300"><strong>Karakter Aktif:</strong> <span id="active-char-name" class="font-bold text-blue-300"></span></p>
+                <p id="active-char-desc" class="text-xs text-gray-400 mt-1"></p>
+            </div>
+            <form id="scene-form" class="space-y-4">
+                <div>
+                    <label for="scene-description" class="block text-sm font-medium text-gray-300 mb-1">Deskripsi Adegan</label>
+                    <textarea id="scene-description" rows="4" class="w-full bg-gray-700 border border-gray-600 rounded-lg p-2.5 focus:ring-blue-500 focus:border-blue-500" placeholder="Contoh: berjalan sendirian di gang sempit sebuah kota cyberpunk saat hujan gerimis, lampu neon memantul di jalanan basah."></textarea>
+                </div>
+                <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300">Tambahkan Adegan ke Alur Cerita</button>
+                 <button type="button" id="reset-character-btn" class="w-full mt-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300">Ganti Karakter</button>
+            </form>
+        </div>
+
+        <!-- Step 3: Output -->
+        <div id="output-section">
+            <h2 class="text-2xl font-semibold mb-4">Hasil Prompt (Siap Digunakan)</h2>
+            <div id="prompt-list" class="space-y-4">
+                <p class="text-gray-500">Prompt yang Anda buat akan muncul di sini...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // DOM Elements
+        const characterSection = document.getElementById('character-section');
+        const sceneSection = document.getElementById('scene-section');
+        const characterForm = document.getElementById('character-form');
+        const sceneForm = document.getElementById('scene-form');
+        const promptList = document.getElementById('prompt-list');
+        const resetCharacterBtn = document.getElementById('reset-character-btn');
+
+        // State variables
+        let characterBasePrompt = '';
+        let generatedPrompts = [];
+        let sceneCounter = 0;
+
+        /**
+         * Handles the character form submission.
+         * It builds a detailed character description string and stores it.
+         */
+        characterForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const charName = document.getElementById('char-name').value || 'Karakter';
+            const appearance = document.getElementById('char-appearance').value;
+            const outfit = document.getElementById('char-outfit').value;
+            const accessory = document.getElementById('char-accessory').value;
+
+            if (!appearance || !outfit) {
+                alert('Harap isi setidaknya "Penampilan Fisik" dan "Pakaian Khas" untuk memastikan konsistensi.');
+                return;
+            }
+
+            // Construct the base prompt for character consistency
+            characterBasePrompt = `(Karakter konsisten: seorang ${appearance.trim()} Pakaian khas: ${outfit.trim()}. Ciri khusus: ${accessory.trim() || 'tidak ada'}).`;
+
+            // Update UI
+            document.getElementById('active-char-name').textContent = charName;
+            document.getElementById('active-char-desc').textContent = characterBasePrompt;
+            characterSection.classList.add('hidden');
+            sceneSection.classList.remove('hidden');
+            sceneSection.classList.add('fade-in');
+            
+            // Clear previous prompts if a new character is set
+            generatedPrompts = [];
+            sceneCounter = 0;
+            renderPrompts();
+        });
+        
+        /**
+         * Resets the character, hiding the scene section and showing the character section again.
+         */
+        resetCharacterBtn.addEventListener('click', () => {
+            characterBasePrompt = '';
+            sceneSection.classList.add('hidden');
+            characterSection.classList.remove('hidden');
+            characterSection.classList.add('fade-in');
+            document.getElementById('scene-description').value = '';
+        });
+
+        /**
+         * Handles the scene form submission.
+         * It combines the character base prompt with the new scene description.
+         */
+        sceneForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const sceneDescription = document.getElementById('scene-description').value;
+
+            if (!sceneDescription.trim()) {
+                alert('Harap masukkan deskripsi adegan.');
+                return;
+            }
+
+            // Combine base prompt with scene description
+            const fullPrompt = `${characterBasePrompt} ${sceneDescription.trim()}`;
+            
+            sceneCounter++;
+            generatedPrompts.push({
+                id: sceneCounter,
+                prompt: fullPrompt
+            });
+
+            // Re-render the list of prompts
+            renderPrompts();
+            
+            // Clear the input for the next scene
+            document.getElementById('scene-description').value = '';
+        });
+
+        /**
+         * Renders the list of generated prompts into the output section.
+         */
+        function renderPrompts() {
+            if (generatedPrompts.length === 0) {
+                promptList.innerHTML = '<p class="text-gray-500">Prompt yang Anda buat akan muncul di sini...</p>';
+                return;
+            }
+
+            promptList.innerHTML = ''; // Clear existing list
+            generatedPrompts.forEach(p => {
+                const promptCard = document.createElement('div');
+                promptCard.className = 'bg-gray-800 p-4 rounded-lg shadow-md border border-gray-700 fade-in';
+                
+                promptCard.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-semibold text-blue-300">Adegan ${p.id}</h3>
+                            <p class="text-gray-300 mt-2 pr-4">${p.prompt}</p>
+                        </div>
+                        <button class="copy-btn bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-3 rounded-lg text-sm transition duration-300" data-prompt="${p.prompt}">
+                            Salin
+                        </button>
+                    </div>
+                `;
+                promptList.appendChild(promptCard);
+            });
+
+            // Add event listeners to the new copy buttons
+            document.querySelectorAll('.copy-btn').forEach(button => {
+                button.addEventListener('click', handleCopyClick);
+            });
+        }
+
+        /**
+         * Handles the click event for a copy button.
+         * Copies the prompt text to the clipboard.
+         */
+        function handleCopyClick(event) {
+            const button = event.target;
+            const textToCopy = button.dataset.prompt;
+
+            // Use a temporary textarea to perform the copy command
+            const textArea = document.createElement('textarea');
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                button.textContent = 'Disalin!';
+                button.classList.remove('bg-gray-600', 'hover:bg-gray-500');
+                button.classList.add('bg-green-600');
+                setTimeout(() => {
+                    button.textContent = 'Salin';
+                    button.classList.remove('bg-green-600');
+                    button.classList.add('bg-gray-600', 'hover:bg-gray-500');
+                }, 2000);
+            } catch (err) {
+                console.error('Gagal menyalin teks: ', err);
+                alert('Gagal menyalin. Silakan salin secara manual.');
+            }
+            document.body.removeChild(textArea);
+        }
+        
+        // Initial render
+        renderPrompts();
+
+    </script>
+</body>
+</html>
